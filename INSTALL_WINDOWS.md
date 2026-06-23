@@ -1,84 +1,81 @@
-# 📱 Installation sur Termux (Android)
+# 🪟 Installation sur Windows (CMD / Win+R)
 
-Ce guide explique comment installer **Green OPS** sur Termux pour pouvoir le lancer avec une simple commande : `greenops`.
-
----
-
-## Prérequis
-
-- [Termux](https://f-droid.org/packages/com.termux/) installé (de préférence depuis F-Droid, pas le Play Store qui est obsolète)
-- Le dépôt **Green OPS** cloné ou téléchargé sur ton téléphone
+Ce guide explique comment lancer **Green OPS** sur Windows, soit en local simple, soit comme une vraie commande accessible depuis n'importe où (CMD, Win+R, PowerShell).
 
 ---
 
-## Étape 1 — Récupérer le projet
+## Option A — Lancement rapide (sans installation)
 
-### Option A : avec git (si déjà installé dans Termux)
-```bash
-pkg install git -y
+1. Télécharge ou clone le dépôt.
+2. Double-clique sur `greenops.bat`.
+
+C'est tout. Le fichier `green_ops.html` s'ouvre dans ton navigateur par défaut. Cette méthode fonctionne uniquement si tu restes dans le dossier du projet.
+
+---
+
+## Option B — Commande globale `greenops` (recommandé)
+
+Cette méthode te permet de taper `greenops` depuis **Win+R**, CMD, ou PowerShell, **peu importe où tu es** sur ton PC.
+
+### Étape 1 — Cloner ou télécharger le projet
+
+```bat
 git clone https://github.com/TON-PSEUDO/green-ops.git
 cd green-ops
 ```
 
-### Option B : téléchargement manuel
-Télécharge le ZIP du dépôt depuis GitHub (`Code` → `Download ZIP`), décompresse-le, puis dans Termux :
-```bash
-termux-setup-storage
-cd /sdcard/Download/green-ops
-```
+Ou télécharge le ZIP depuis GitHub (`Code` → `Download ZIP`) et décompresse-le.
 
----
+### Étape 2 — Lancer l'installateur PowerShell
 
-## Étape 2 — Lancer l'installateur
+Clic droit sur `install_windows.ps1` → **"Exécuter avec PowerShell"**.
 
-```bash
-bash install_termux.sh
+Si Windows affiche une erreur de sécurité (politique d'exécution bloquée), ouvre PowerShell manuellement et tape :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File install_windows.ps1
 ```
 
 Ce script :
-1. Copie `green_ops.html` dans `~/.greenops/`
-2. Crée une commande `greenops` accessible depuis n'importe où dans Termux
+1. Copie `green_ops.html` dans `%LOCALAPPDATA%\GreenOps\`
+2. Crée un lanceur `greenops.bat` propre dans ce même dossier
+3. Ajoute ce dossier au `PATH` de ton compte utilisateur
 
----
+### Étape 3 — Redémarrer le terminal
 
-## Étape 3 — Utiliser Green OPS
+Ferme **toutes** les fenêtres CMD/PowerShell ouvertes (le `PATH` ne se met à jour qu'au redémarrage du terminal).
 
-À partir de maintenant, dans Termux, tape simplement :
+### Étape 4 — Utiliser Green OPS
 
-```bash
+Tape, depuis n'importe où :
+
+```bat
 greenops
 ```
 
-Cela ouvre `green_ops.html` dans le navigateur par défaut de ton téléphone.
+Ou directement depuis **Win+R** :
+```
+greenops
+```
 
 ---
 
 ## Problèmes courants
 
-**"termux-open: command not found" ou rien ne s'ouvre**
-```bash
-pkg install termux-api -y
-```
-Puis installe aussi l'application **Termux:API** depuis F-Droid (c'est une appli séparée, obligatoire pour `termux-open`).
+**"greenops n'est pas reconnu en tant que commande"**
+→ Le terminal n'a pas été redémarré après l'installation. Ferme et rouvre CMD, ou redémarre le PC.
 
-**"Permission denied" lors du clonage / accès aux fichiers**
-```bash
-termux-setup-storage
+**PowerShell refuse d'exécuter le script (erreur de policy)**
+```powershell
+powershell -ExecutionPolicy Bypass -File install_windows.ps1
 ```
-Accepte la permission de stockage demandée par Android.
 
 **Je veux désinstaller**
-```bash
-rm -rf ~/.greenops
-rm $PREFIX/bin/greenops
-```
+1. Supprime le dossier `%LOCALAPPDATA%\GreenOps`
+2. Retire ce dossier du PATH : Paramètres Windows → "Modifier les variables d'environnement" → Variables utilisateur → `Path` → Modifier → supprime la ligne correspondante
 
 ---
 
 ## Mise à jour
 
-Si tu modifies `green_ops.html` plus tard, relance simplement :
-```bash
-bash install_termux.sh
-```
-Le fichier sera remplacé automatiquement.
+Si `green_ops.html` est modifié, relance simplement l'installateur PowerShell (Étape 2) : il remplace l'ancienne version automatiquement.

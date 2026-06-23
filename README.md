@@ -43,8 +43,8 @@ Aucune installation de dépendances, aucun serveur : tu ouvres le fichier, ça m
 
 Deux guides détaillés sont disponibles selon ta plateforme :
 
-- 📱 **[Guide Termux (Android)](docs/INSTALL_TERMUX.md)**
-- 🪟 **[Guide Windows (CMD / Win+R)](docs/INSTALL_WINDOWS.md)**
+- 📱 **[Guide Termux (Android)](INSTALL_TERMUX.md)**
+- 🪟 **[Guide Windows (CMD / Win+R)](INSTALL_WINDOWS.md)**
 
 ### En une phrase
 
@@ -69,9 +69,8 @@ green-ops/
 ├── install_termux.sh       # Installateur Termux
 ├── greenops.bat            # Lanceur Windows simple
 ├── install_windows.ps1     # Installateur Windows (commande globale)
-├── docs/
-│   ├── INSTALL_TERMUX.md
-│   └── INSTALL_WINDOWS.md
+├── INSTALL_TERMUX.md       # Guide détaillé Termux
+├── INSTALL_WINDOWS.md      # Guide détaillé Windows
 └── README.md
 ```
 
