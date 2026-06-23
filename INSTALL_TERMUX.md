@@ -16,7 +16,7 @@ Ce guide explique comment installer **Green OPS** sur Termux pour pouvoir le lan
 ### Option A : avec git (si déjà installé dans Termux)
 ```bash
 pkg install git -y
-git clone https://github.com/TON-PSEUDO/green-ops.git
+git clone https://github.com/jason95470/green-ops.git
 cd green-ops
 ```
 
