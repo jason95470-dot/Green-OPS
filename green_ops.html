@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GREEN OPS // Terminal Tool Index</title>
+<style>
+  :root{
+    --bg:#04110a;
+    --bg-deep:#020805;
+    --green:#39ff7a;
+    --green-dim:#1f8a4d;
+    --green-faint:#0f4226;
+    --amber:#ffb454;
+    --red:#ff4d4d;
+    --text:#b9ffce;
+    --text-dim:#5c9173;
+    --scanline:rgba(57,255,122,0.035);
+    --glow:0 0 6px rgba(57,255,122,0.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:'Courier New',ui-monospace,SFMono-Regular,Consolas,monospace;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* CRT overlay */
+  body::before{
+    content:"";
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:repeating-linear-gradient(
+      to bottom,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events:none;
+    z-index:9999;
+    mix-blend-mode:overlay;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.55) 100%);
+    pointer-events:none;
+    z-index:9998;
+  }
+
+  .crt-flicker{
+    animation:flicker 6s infinite;
+  }
+  @keyframes flicker{
+    0%,98%{opacity:1;}
+    99%{opacity:0.96;}
+    100%{opacity:1;}
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+
+  /* HEADER */
+  header{
+    border:1px solid var(--green-faint);
+    background:linear-gradient(180deg, rgba(57,255,122,0.06), transparent);
+    padding:18px 20px;
+    margin-bottom:18px;
+    position:relative;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;
+    width:3px;height:100%;
+    background:var(--green);
+    box-shadow:var(--glow);
+  }
+  .ascii-title{
+    font-size:11px;
+    line-height:1.15;
+    color:var(--green);
+    text-shadow:var(--glow);
+    white-space:pre;
+    margin:0 0 10px 0;
+    overflow-x:auto;
+  }
+  .subtitle-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    border-top:1px dashed var(--green-faint);
+    padding-top:10px;
+  }
+  .subtitle{
+    color:var(--text-dim);
+    font-size:13px;
+    letter-spacing:0.5px;
+  }
+  .subtitle .accent{color:var(--green);}
+  .clock{
+    color:var(--amber);
+    font-size:12px;
+  }
+
+  /* STATS BAR */
+  .stats{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .stat-box{
+    border:1px solid var(--green-faint);
+    background:rgba(57,255,122,0.03);
+    padding:8px 14px;
+    font-size:12px;
+    color:var(--text-dim);
+    flex:1;
+    min-width:120px;
+  }
+  .stat-box b{
+    display:block;
+    color:var(--green);
+    font-size:18px;
+    text-shadow:var(--glow);
+  }
+  .stat-box.danger-stat b{color:var(--red);text-shadow:0 0 6px rgba(255,77,77,0.5);}
+  .stat-box.caution-stat b{color:var(--amber);text-shadow:0 0 6px rgba(255,180,84,0.5);}
+
+  /* CONTROLS */
+  .controls{
+    border:1px solid var(--green-faint);
+    padding:14px 16px;
+    margin-bottom:16px;
+    background:rgba(0,0,0,0.2);
+  }
+  .search-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .prompt-sign{
+    color:var(--green);
+    font-weight:bold;
+    text-shadow:var(--glow);
+  }
+  #search{
+    flex:1;
+    background:var(--bg-deep);
+    border:1px solid var(--green-dim);
+    color:var(--text);
+    font-family:inherit;
+    font-size:15px;
+    padding:9px 12px;
+    outline:none;
+    caret-color:var(--green);
+  }
+  #search:focus{
+    border-color:var(--green);
+    box-shadow:0 0 8px rgba(57,255,122,0.3);
+  }
+  #search::placeholder{color:var(--text-dim);}
+
+  .filter-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+  }
+  .filter-label{
+    color:var(--text-dim);
+    font-size:11px;
+    margin-right:4px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .chip{
+    background:transparent;
+    border:1px solid var(--green-faint);
+    color:var(--text-dim);
+    font-family:inherit;
+    font-size:12px;
+    padding:5px 11px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .chip:hover{
+    border-color:var(--green-dim);
+    color:var(--text);
+  }
+  .chip.active{
+    background:var(--green-faint);
+    border-color:var(--green);
+    color:var(--green);
+    box-shadow:0 0 8px rgba(57,255,122,0.25);
+  }
+  .chip.risk-safe.active{border-color:var(--green);color:var(--green);}
+  .chip.risk-caution.active{border-color:var(--amber);color:var(--amber);background:rgba(255,180,84,0.08);}
+  .chip.risk-danger.active{border-color:var(--red);color:var(--red);background:rgba(255,77,77,0.08);}
+
+  .filter-spacer{flex:1;}
+  .kbd-hint{
+    color:var(--text-dim);
+    font-size:11px;
+  }
+  .kbd-hint kbd{
+    border:1px solid var(--green-faint);
+    padding:1px 5px;
+    border-radius:2px;
+    color:var(--green);
+    font-size:10px;
+  }
+
+  /* RESULTS */
+  #result-count{
+    color:var(--text-dim);
+    font-size:12px;
+    margin-bottom:8px;
+    padding-left:2px;
+  }
+  #result-count .n{color:var(--green);}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:10px;
+  }
+
+  .card{
+    border:1px solid var(--green-faint);
+    background:rgba(5,20,12,0.6);
+    padding:12px 14px;
+    cursor:default;
+    transition:border-color .12s, transform .08s, box-shadow .12s;
+    position:relative;
+    outline:none;
+  }
+  .card:hover, .card.focused{
+    border-color:var(--green-dim);
+    box-shadow:0 0 10px rgba(57,255,122,0.15);
+    transform:translateY(-1px);
+  }
+  .card.focused{
+    border-color:var(--green);
+    box-shadow:0 0 14px rgba(57,255,122,0.35);
+  }
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .tool-name{
+    color:var(--green);
+    font-size:14.5px;
+    font-weight:bold;
+    text-shadow:0 0 4px rgba(57,255,122,0.4);
+    word-break:break-word;
+  }
+  .risk-tag{
+    font-size:9.5px;
+    letter-spacing:0.5px;
+    padding:1px 6px;
+    border:1px solid;
+    white-space:nowrap;
+    text-transform:uppercase;
+  }
+  .risk-tag.safe{color:var(--green);border-color:var(--green-dim);}
+  .risk-tag.caution{color:var(--amber);border-color:var(--amber);}
+  .risk-tag.danger{color:var(--red);border-color:var(--red);}
+
+  .tool-desc{
+    color:var(--text);
+    font-size:12.5px;
+    line-height:1.45;
+    opacity:0.85;
+  }
+  .tool-cat{
+    color:var(--text-dim);
+    font-size:10px;
+    margin-top:8px;
+    letter-spacing:0.5px;
+  }
+  .tool-cat::before{content:"# ";}
+
+  .no-results{
+    grid-column:1/-1;
+    text-align:center;
+    padding:50px 20px;
+    color:var(--text-dim);
+  }
+  .no-results .big{
+    color:var(--red);
+    font-size:14px;
+    margin-bottom:6px;
+  }
+
+  footer{
+    margin-top:26px;
+    border-top:1px dashed var(--green-faint);
+    padding-top:14px;
+    color:var(--text-dim);
+    font-size:11px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  footer .accent{color:var(--green);}
+
+  /* legend */
+  .legend{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-size:11px;
+    color:var(--text-dim);
+    margin-bottom:14px;
+  }
+  .legend-item{display:flex;align-items:center;gap:5px;}
+  .dot{width:8px;height:8px;display:inline-block;border-radius:50%;}
+  .dot.safe{background:var(--green);box-shadow:0 0 5px var(--green);}
+  .dot.caution{background:var(--amber);box-shadow:0 0 5px var(--amber);}
+  .dot.danger{background:var(--red);box-shadow:0 0 5px var(--red);}
+
+  ::selection{background:var(--green-faint);color:var(--green);}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-deep);}
+  ::-webkit-scrollbar-thumb{background:var(--green-faint);border:1px solid var(--green-dim);}
+  ::-webkit-scrollbar-thumb:hover{background:var(--green-dim);}
+
+  @media (max-width:600px){
+    .ascii-title{font-size:7px;}
+    .subtitle-row{flex-direction:column;align-items:flex-start;}
+    .stats{flex-direction:column;}
+  }
+</style>
+</head>
+<body class="crt-flicker">
+<div class="wrap">
+
+  <header>
+<pre class="ascii-title"> ██████╗ ██████╗ ███████╗███████╗███╗   ██╗     ██████╗ ██████╗ ███████╗
+██╔════╝ ██╔══██╗██╔════╝██╔════╝████╗  ██║    ██╔═══██╗██╔══██╗██╔════╝
+██║  ███╗██████╔╝█████╗  █████╗  ██╔██╗ ██║    ██║   ██║██████╔╝███████╗
+██║   ██║██╔══██╗██╔══╝  ██╔══╝  ██║╚██╗██║    ██║   ██║██╔══██╗╚════██║
+╚██████╔╝██║  ██║███████╗███████╗██║ ╚████║    ╚██████╔╝██║  ██║███████║
+ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝     ╚═════╝ ╚═╝  ╚═╝╚══════╝</pre>
+    <div class="subtitle-row">
+      <div class="subtitle">&gt; <span class="accent">INDEX D'OUTILS LIGNE DE COMMANDE</span> // by Djibril</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat-box">TOTAL OUTILS<b id="stat-total">0</b></div>
+    <div class="stat-box">CATÉGORIES<b id="stat-cats">0</b></div>
+    <div class="stat-box caution-stat">SENSIBLES<b id="stat-caution">0</b></div>
+    <div class="stat-box danger-stat">DANGEREUX<b id="stat-danger">0</b></div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="dot safe"></span> SAFE — usage courant sans risque</span>
+    <span class="legend-item"><span class="dot caution"></span> CAUTION — agit sur le système, à vérifier</span>
+    <span class="legend-item"><span class="dot danger"></span> DANGER — destructeur, root, ou offensif</span>
+  </div>
+
+  <div class="controls">
+    <div class="search-row">
+      <span class="prompt-sign">root@greenops:~$</span>
+      <input type="text" id="search" placeholder="tape pour chercher un outil... (ex: réseau, rm, scan)" autocomplete="off">
+    </div>
+    <div class="filter-row" id="cat-filters">
+      <span class="filter-label">Catégorie:</span>
+      <!-- injecté en JS -->
+      <span class="filter-spacer"></span>
+      <span class="kbd-hint"><kbd>↑</kbd><kbd>↓</kbd> naviguer · <kbd>/</kbd> chercher · <kbd>Esc</kbd> reset</span>
+    </div>
+    <div class="filter-row" id="risk-filters" style="margin-top:8px;">
+      <span class="filter-label">Risque:</span>
+      <button class="chip risk-safe" data-risk="safe">safe</button>
+      <button class="chip risk-caution" data-risk="caution">caution</button>
+      <button class="chip risk-danger" data-risk="danger">danger</button>
+    </div>
+  </div>
+
+  <div id="result-count">Affichage de <span class="n" id="count-shown">0</span> / <span id="count-total">0</span> outils</div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <span>GREEN OPS v2.0 — terminal tool index</span>
+    <span class="accent">made by Djibril</span>
+  </footer>
+
+</div>
+
+<script>
+const TOOLS = [{"n": "ls", "c": "Fichiers", "r": "safe", "d": "Liste le contenu d'un dossier"}, {"n": "cd", "c": "Fichiers", "r": "safe", "d": "Change de dossier courant"}, {"n": "pwd", "c": "Fichiers", "r": "safe", "d": "Affiche le dossier courant"}, {"n": "cp", "c": "Fichiers", "r": "caution", "d": "Copie des fichiers ou dossiers"}, {"n": "mv", "c": "Fichiers", "r": "caution", "d": "Déplace ou renomme des fichiers"}, {"n": "rm", "c": "Fichiers", "r": "danger", "d": "Supprime des fichiers définitivement"}, {"n": "rm -rf", "c": "Fichiers", "r": "danger", "d": "Supprime un dossier entier sans confirmation"}, {"n": "mkdir", "c": "Fichiers", "r": "safe", "d": "Crée un nouveau dossier"}, {"n": "rmdir", "c": "Fichiers", "r": "caution", "d": "Supprime un dossier vide"}, {"n": "touch", "c": "Fichiers", "r": "safe", "d": "Crée un fichier vide ou met à jour sa date"}, {"n": "cat", "c": "Fichiers", "r": "safe", "d": "Affiche le contenu d'un fichier"}, {"n": "tac", "c": "Fichiers", "r": "safe", "d": "Affiche un fichier ligne par ligne à l'envers"}, {"n": "less", "c": "Fichiers", "r": "safe", "d": "Affiche un fichier page par page"}, {"n": "more", "c": "Fichiers", "r": "safe", "d": "Affiche un fichier page par page (basique)"}, {"n": "head", "c": "Fichiers", "r": "safe", "d": "Affiche le début d'un fichier"}, {"n": "tail", "c": "Fichiers", "r": "safe", "d": "Affiche la fin d'un fichier"}, {"n": "tail -f", "c": "Fichiers", "r": "safe", "d": "Suit un fichier en temps réel (logs)"}, {"n": "find", "c": "Fichiers", "r": "caution", "d": "Recherche des fichiers selon des critères"}, {"n": "locate", "c": "Fichiers", "r": "safe", "d": "Recherche rapide de fichiers indexés"}, {"n": "updatedb", "c": "Fichiers", "r": "safe", "d": "Met à jour l'index utilisé par locate"}, {"n": "tree", "c": "Fichiers", "r": "safe", "d": "Affiche l'arborescence d'un dossier"}, {"n": "file", "c": "Fichiers", "r": "safe", "d": "Identifie le type d'un fichier"}, {"n": "stat", "c": "Fichiers", "r": "safe", "d": "Affiche les métadonnées d'un fichier"}, {"n": "du", "c": "Fichiers", "r": "safe", "d": "Affiche l'espace disque utilisé"}, {"n": "df", "c": "Fichiers", "r": "safe", "d": "Affiche l'espace disque disponible"}, {"n": "ln", "c": "Fichiers", "r": "caution", "d": "Crée un lien symbolique ou physique"}, {"n": "readlink", "c": "Fichiers", "r": "safe", "d": "Affiche la cible d'un lien symbolique"}, {"n": "basename", "c": "Fichiers", "r": "safe", "d": "Extrait le nom de fichier d'un chemin"}, {"n": "dirname", "c": "Fichiers", "r": "safe", "d": "Extrait le dossier parent d'un chemin"}, {"n": "realpath", "c": "Fichiers", "r": "safe", "d": "Affiche le chemin absolu d'un fichier"}, {"n": "rename", "c": "Fichiers", "r": "caution", "d": "Renomme plusieurs fichiers via motif"}, {"n": "shred", "c": "Fichiers", "r": "danger", "d": "Efface un fichier de façon irrécupérable"}, {"n": "rsync", "c": "Fichiers", "r": "caution", "d": "Synchronise des fichiers/dossiers"}, {"n": "scp", "c": "Fichiers", "r": "caution", "d": "Copie des fichiers entre machines via SSH"}, {"n": "sftp", "c": "Fichiers", "r": "caution", "d": "Transfert de fichiers sécurisé interactif"}, {"n": "wget", "c": "Fichiers", "r": "caution", "d": "Télécharge des fichiers depuis le web"}, {"n": "curl", "c": "Fichiers", "r": "caution", "d": "Transfère des données depuis/vers un serveur"}, {"n": "xargs", "c": "Fichiers", "r": "caution", "d": "Construit des commandes à partir d'une entrée"}, {"n": "split", "c": "Fichiers", "r": "safe", "d": "Découpe un fichier en plusieurs morceaux"}, {"n": "csplit", "c": "Fichiers", "r": "safe", "d": "Découpe un fichier selon un contexte"}, {"n": "fdupes", "c": "Fichiers", "r": "caution", "d": "Détecte les fichiers en double"}, {"n": "rclone", "c": "Fichiers", "r": "caution", "d": "Synchronise avec des stockages cloud"}, {"n": "fzf", "c": "Fichiers", "r": "safe", "d": "Recherche floue interactive en ligne de commande"}, {"n": "fd", "c": "Fichiers", "r": "safe", "d": "Alternative rapide et moderne à find"}, {"n": "mc", "c": "Fichiers", "r": "safe", "d": "Gestionnaire de fichiers visuel (Midnight Commander)"}, {"n": "ranger", "c": "Fichiers", "r": "safe", "d": "Gestionnaire de fichiers en mode console"}, {"n": "nnn", "c": "Fichiers", "r": "safe", "d": "Gestionnaire de fichiers minimaliste et rapide"}, {"n": "grep", "c": "Texte", "r": "safe", "d": "Recherche du texte dans des fichiers"}, {"n": "egrep", "c": "Texte", "r": "safe", "d": "Recherche avec expressions régulières étendues"}, {"n": "zgrep", "c": "Texte", "r": "safe", "d": "Recherche dans des fichiers compressés"}, {"n": "sed", "c": "Texte", "r": "caution", "d": "Édite du texte en flux (recherche/remplace)"}, {"n": "awk", "c": "Texte", "r": "caution", "d": "Traite et analyse du texte en colonnes"}, {"n": "cut", "c": "Texte", "r": "safe", "d": "Extrait des colonnes de texte"}, {"n": "sort", "c": "Texte", "r": "safe", "d": "Trie les lignes d'un fichier"}, {"n": "uniq", "c": "Texte", "r": "safe", "d": "Supprime les lignes en double"}, {"n": "wc", "c": "Texte", "r": "safe", "d": "Compte lignes, mots, caractères"}, {"n": "tr", "c": "Texte", "r": "safe", "d": "Remplace ou supprime des caractères"}, {"n": "diff", "c": "Texte", "r": "safe", "d": "Compare deux fichiers"}, {"n": "patch", "c": "Texte", "r": "caution", "d": "Applique un correctif à un fichier"}, {"n": "vim", "c": "Texte", "r": "safe", "d": "Éditeur de texte modal avancé"}, {"n": "nano", "c": "Texte", "r": "safe", "d": "Éditeur de texte simple en console"}, {"n": "emacs", "c": "Texte", "r": "safe", "d": "Éditeur de texte extensible"}, {"n": "jq", "c": "Texte", "r": "safe", "d": "Traite et formate des données JSON"}, {"n": "yq", "c": "Texte", "r": "safe", "d": "Traite et formate des données YAML"}, {"n": "xmlstarlet", "c": "Texte", "r": "safe", "d": "Traite et transforme des fichiers XML"}, {"n": "pandoc", "c": "Texte", "r": "safe", "d": "Convertit entre formats de documents"}, {"n": "column", "c": "Texte", "r": "safe", "d": "Formate du texte en colonnes alignées"}, {"n": "fold", "c": "Texte", "r": "safe", "d": "Découpe les lignes à une largeur donnée"}, {"n": "expand", "c": "Texte", "r": "safe", "d": "Convertit les tabulations en espaces"}, {"n": "paste", "c": "Texte", "r": "safe", "d": "Fusionne des fichiers ligne par ligne"}, {"n": "join", "c": "Texte", "r": "safe", "d": "Fusionne deux fichiers triés sur un champ"}, {"n": "comm", "c": "Texte", "r": "safe", "d": "Compare deux fichiers triés ligne à ligne"}, {"n": "rev", "c": "Texte", "r": "safe", "d": "Inverse les caractères de chaque ligne"}, {"n": "ag (the_silver_searcher)", "c": "Texte", "r": "safe", "d": "Recherche de texte ultra rapide dans le code"}, {"n": "ripgrep (rg)", "c": "Texte", "r": "safe", "d": "Recherche de texte très rapide et moderne"}, {"n": "bat", "c": "Texte", "r": "safe", "d": "Affiche un fichier avec coloration syntaxique"}, {"n": "iconv", "c": "Texte", "r": "safe", "d": "Convertit l'encodage des caractères"}, {"n": "dos2unix", "c": "Texte", "r": "safe", "d": "Convertit les fins de ligne Windows en Unix"}, {"n": "unix2dos", "c": "Texte", "r": "safe", "d": "Convertit les fins de ligne Unix en Windows"}, {"n": "ps", "c": "Système", "r": "safe", "d": "Liste les processus en cours"}, {"n": "top", "c": "Système", "r": "safe", "d": "Affiche les processus en temps réel"}, {"n": "htop", "c": "Système", "r": "safe", "d": "Version interactive et colorée de top"}, {"n": "kill", "c": "Système", "r": "caution", "d": "Envoie un signal à un processus"}, {"n": "killall", "c": "Système", "r": "caution", "d": "Tue tous les processus d'un nom donné"}, {"n": "pkill", "c": "Système", "r": "caution", "d": "Tue des processus selon un motif"}, {"n": "nice", "c": "Système", "r": "safe", "d": "Lance un processus avec une priorité donnée"}, {"n": "renice", "c": "Système", "r": "caution", "d": "Change la priorité d'un processus actif"}, {"n": "nohup", "c": "Système", "r": "safe", "d": "Lance un processus insensible à la déconnexion"}, {"n": "jobs", "c": "Système", "r": "safe", "d": "Liste les tâches en arrière-plan"}, {"n": "bg", "c": "Système", "r": "safe", "d": "Reprend une tâche en arrière-plan"}, {"n": "fg", "c": "Système", "r": "safe", "d": "Reprend une tâche au premier plan"}, {"n": "disown", "c": "Système", "r": "safe", "d": "Détache une tâche du shell courant"}, {"n": "systemctl", "c": "Système", "r": "caution", "d": "Gère les services systemd"}, {"n": "service", "c": "Système", "r": "caution", "d": "Gère les services système (init)"}, {"n": "journalctl", "c": "Système", "r": "safe", "d": "Consulte les journaux systemd"}, {"n": "dmesg", "c": "Système", "r": "safe", "d": "Affiche les messages du noyau"}, {"n": "uptime", "c": "Système", "r": "safe", "d": "Affiche le temps de fonctionnement du système"}, {"n": "uname", "c": "Système", "r": "safe", "d": "Affiche les informations du système"}, {"n": "lscpu", "c": "Système", "r": "safe", "d": "Affiche les informations du processeur"}, {"n": "lsblk", "c": "Système", "r": "safe", "d": "Liste les périphériques de bloc (disques)"}, {"n": "lsusb", "c": "Système", "r": "safe", "d": "Liste les périphériques USB connectés"}, {"n": "lspci", "c": "Système", "r": "safe", "d": "Liste les périphériques PCI connectés"}, {"n": "free", "c": "Système", "r": "safe", "d": "Affiche l'utilisation de la mémoire"}, {"n": "vmstat", "c": "Système", "r": "safe", "d": "Statistiques sur la mémoire virtuelle"}, {"n": "iostat", "c": "Système", "r": "safe", "d": "Statistiques d'entrées/sorties disque"}, {"n": "mpstat", "c": "Système", "r": "safe", "d": "Statistiques d'utilisation des processeurs"}, {"n": "strace", "c": "Système", "r": "caution", "d": "Trace les appels système d'un programme"}, {"n": "ltrace", "c": "Système", "r": "caution", "d": "Trace les appels de bibliothèque"}, {"n": "lsof", "c": "Système", "r": "safe", "d": "Liste les fichiers ouverts par les processus"}, {"n": "fuser", "c": "Système", "r": "caution", "d": "Identifie les processus utilisant un fichier"}, {"n": "chroot", "c": "Système", "r": "danger", "d": "Change la racine apparente du système de fichiers"}, {"n": "crontab", "c": "Système", "r": "caution", "d": "Planifie des tâches récurrentes"}, {"n": "at", "c": "Système", "r": "caution", "d": "Planifie une tâche unique différée"}, {"n": "sudo", "c": "Système", "r": "danger", "d": "Exécute une commande avec les droits admin"}, {"n": "su", "c": "Système", "r": "danger", "d": "Change d'utilisateur courant"}, {"n": "shutdown", "c": "Système", "r": "danger", "d": "Éteint ou redémarre le système"}, {"n": "reboot", "c": "Système", "r": "danger", "d": "Redémarre le système immédiatement"}, {"n": "init", "c": "Système", "r": "danger", "d": "Change le niveau d'exécution du système"}, {"n": "systemd-analyze", "c": "Système", "r": "safe", "d": "Analyse les performances de démarrage"}, {"n": "watch", "c": "Système", "r": "safe", "d": "Répète une commande à intervalle régulier"}, {"n": "timeout", "c": "Système", "r": "safe", "d": "Limite la durée d'exécution d'une commande"}, {"n": "env", "c": "Système", "r": "safe", "d": "Affiche ou modifie les variables d'environnement"}, {"n": "export", "c": "Système", "r": "safe", "d": "Définit une variable d'environnement"}, {"n": "alias", "c": "Système", "r": "safe", "d": "Crée un raccourci pour une commande"}, {"n": "history", "c": "Système", "r": "safe", "d": "Affiche l'historique des commandes"}, {"n": "man", "c": "Système", "r": "safe", "d": "Affiche le manuel d'une commande"}, {"n": "tldr", "c": "Système", "r": "safe", "d": "Affiche des exemples simplifiés d'une commande"}, {"n": "whatis", "c": "Système", "r": "safe", "d": "Affiche une description courte d'une commande"}, {"n": "which", "c": "Système", "r": "safe", "d": "Localise l'exécutable d'une commande"}, {"n": "type", "c": "Système", "r": "safe", "d": "Indique comment une commande sera interprétée"}, {"n": "ping", "c": "Réseau", "r": "safe", "d": "Teste la connectivité vers une machine"}, {"n": "traceroute", "c": "Réseau", "r": "safe", "d": "Affiche le chemin réseau vers une cible"}, {"n": "mtr", "c": "Réseau", "r": "safe", "d": "Combine ping et traceroute en temps réel"}, {"n": "nslookup", "c": "Réseau", "r": "safe", "d": "Interroge les serveurs DNS"}, {"n": "dig", "c": "Réseau", "r": "safe", "d": "Interroge les DNS en détail"}, {"n": "host", "c": "Réseau", "r": "safe", "d": "Résout un nom de domaine"}, {"n": "whois", "c": "Réseau", "r": "safe", "d": "Affiche les infos d'enregistrement d'un domaine"}, {"n": "netstat", "c": "Réseau", "r": "safe", "d": "Affiche les connexions réseau actives"}, {"n": "ss", "c": "Réseau", "r": "safe", "d": "Affiche les sockets réseau (moderne)"}, {"n": "ifconfig", "c": "Réseau", "r": "caution", "d": "Configure les interfaces réseau"}, {"n": "ip", "c": "Réseau", "r": "caution", "d": "Gère les interfaces et routes réseau"}, {"n": "iwconfig", "c": "Réseau", "r": "caution", "d": "Configure les interfaces sans fil"}, {"n": "nmcli", "c": "Réseau", "r": "caution", "d": "Gère les connexions réseau (NetworkManager)"}, {"n": "route", "c": "Réseau", "r": "caution", "d": "Affiche ou modifie la table de routage"}, {"n": "arp", "c": "Réseau", "r": "safe", "d": "Affiche la table de résolution ARP"}, {"n": "nmap", "c": "Réseau", "r": "danger", "d": "Scanne les ports et services réseau"}, {"n": "netcat (nc)", "c": "Réseau", "r": "danger", "d": "Lit/écrit des données sur le réseau brut"}, {"n": "ncat", "c": "Réseau", "r": "danger", "d": "Version étendue de netcat (Nmap project)"}, {"n": "ssh", "c": "Réseau", "r": "caution", "d": "Connexion sécurisée à une machine distante"}, {"n": "ssh-keygen", "c": "Réseau", "r": "safe", "d": "Génère une paire de clés SSH"}, {"n": "ssh-copy-id", "c": "Réseau", "r": "caution", "d": "Installe une clé publique sur un serveur"}, {"n": "telnet", "c": "Réseau", "r": "danger", "d": "Connexion réseau non chiffrée (obsolète)"}, {"n": "ftp", "c": "Réseau", "r": "caution", "d": "Transfert de fichiers via FTP"}, {"n": "iperf3", "c": "Réseau", "r": "safe", "d": "Mesure la bande passante réseau"}, {"n": "tcpdump", "c": "Réseau", "r": "danger", "d": "Capture et analyse le trafic réseau brut"}, {"n": "wireshark", "c": "Réseau", "r": "danger", "d": "Analyseur de trafic réseau graphique"}, {"n": "tshark", "c": "Réseau", "r": "danger", "d": "Analyseur de trafic réseau en ligne de commande"}, {"n": "curl", "c": "Réseau", "r": "caution", "d": "Effectue des requêtes HTTP/réseau"}, {"n": "httpie", "c": "Réseau", "r": "caution", "d": "Client HTTP convivial en ligne de commande"}, {"n": "openssl", "c": "Réseau", "r": "caution", "d": "Boîte à outils de cryptographie/TLS"}, {"n": "openvpn", "c": "Réseau", "r": "caution", "d": "Client/serveur VPN en ligne de commande"}, {"n": "wg (wireguard)", "c": "Réseau", "r": "caution", "d": "Configure des tunnels VPN WireGuard"}, {"n": "iptables", "c": "Réseau", "r": "danger", "d": "Configure le pare-feu Linux (legacy)"}, {"n": "nft (nftables)", "c": "Réseau", "r": "danger", "d": "Configure le pare-feu Linux (moderne)"}, {"n": "ufw", "c": "Réseau", "r": "caution", "d": "Pare-feu simplifié basé sur iptables"}, {"n": "firewalld", "c": "Réseau", "r": "caution", "d": "Gestionnaire de pare-feu dynamique"}, {"n": "fail2ban-client", "c": "Réseau", "r": "caution", "d": "Gère le blocage d'IP après échecs de connexion"}, {"n": "speedtest-cli", "c": "Réseau", "r": "safe", "d": "Teste la vitesse de connexion internet"}, {"n": "aircrack-ng", "c": "Réseau", "r": "danger", "d": "Suite d'audit de sécurité Wi-Fi"}, {"n": "hping3", "c": "Réseau", "r": "danger", "d": "Génère des paquets réseau personnalisés"}, {"n": "masscan", "c": "Réseau", "r": "danger", "d": "Scanner de ports massivement parallèle"}, {"n": "tar", "c": "Archives", "r": "safe", "d": "Archive des fichiers en un seul fichier .tar"}, {"n": "gzip", "c": "Archives", "r": "safe", "d": "Compresse un fichier au format gzip"}, {"n": "gunzip", "c": "Archives", "r": "safe", "d": "Décompresse un fichier gzip"}, {"n": "bzip2", "c": "Archives", "r": "safe", "d": "Compresse un fichier au format bzip2"}, {"n": "xz", "c": "Archives", "r": "safe", "d": "Compresse un fichier au format xz"}, {"n": "zip", "c": "Archives", "r": "safe", "d": "Crée une archive .zip"}, {"n": "unzip", "c": "Archives", "r": "safe", "d": "Extrait une archive .zip"}, {"n": "7z", "c": "Archives", "r": "safe", "d": "Crée/extrait des archives 7-Zip"}, {"n": "rar", "c": "Archives", "r": "safe", "d": "Crée des archives .rar"}, {"n": "unrar", "c": "Archives", "r": "safe", "d": "Extrait des archives .rar"}, {"n": "zstd", "c": "Archives", "r": "safe", "d": "Compression rapide moderne (Zstandard)"}, {"n": "chmod", "c": "Sécurité", "r": "caution", "d": "Modifie les permissions d'un fichier"}, {"n": "chown", "c": "Sécurité", "r": "caution", "d": "Change le propriétaire d'un fichier"}, {"n": "chgrp", "c": "Sécurité", "r": "caution", "d": "Change le groupe d'un fichier"}, {"n": "umask", "c": "Sécurité", "r": "caution", "d": "Définit les permissions par défaut"}, {"n": "passwd", "c": "Sécurité", "r": "danger", "d": "Change le mot de passe d'un utilisateur"}, {"n": "useradd", "c": "Sécurité", "r": "danger", "d": "Crée un nouvel utilisateur système"}, {"n": "userdel", "c": "Sécurité", "r": "danger", "d": "Supprime un utilisateur système"}, {"n": "usermod", "c": "Sécurité", "r": "danger", "d": "Modifie les attributs d'un utilisateur"}, {"n": "groupadd", "c": "Sécurité", "r": "caution", "d": "Crée un nouveau groupe"}, {"n": "visudo", "c": "Sécurité", "r": "danger", "d": "Édite la configuration sudo en sécurité"}, {"n": "gpg", "c": "Sécurité", "r": "caution", "d": "Chiffre et signe des fichiers (GnuPG)"}, {"n": "age", "c": "Sécurité", "r": "caution", "d": "Outil de chiffrement de fichiers moderne"}, {"n": "openssl enc", "c": "Sécurité", "r": "caution", "d": "Chiffre des données avec OpenSSL"}, {"n": "hashcat", "c": "Sécurité", "r": "danger", "d": "Outil de craquage de hachages par force brute"}, {"n": "john (John the Ripper)", "c": "Sécurité", "r": "danger", "d": "Outil de craquage de mots de passe"}, {"n": "hydra", "c": "Sécurité", "r": "danger", "d": "Outil de force brute sur services réseau"}, {"n": "metasploit (msfconsole)", "c": "Sécurité", "r": "danger", "d": "Framework de tests d'intrusion"}, {"n": "sqlmap", "c": "Sécurité", "r": "danger", "d": "Détecte et exploite les injections SQL"}, {"n": "nikto", "c": "Sécurité", "r": "danger", "d": "Scanner de vulnérabilités web"}, {"n": "clamscan", "c": "Sécurité", "r": "safe", "d": "Analyse antivirus en ligne de commande"}, {"n": "rkhunter", "c": "Sécurité", "r": "safe", "d": "Détecte les rootkits sur le système"}, {"n": "lynis", "c": "Sécurité", "r": "safe", "d": "Audit de sécurité et de configuration"}, {"n": "auditctl", "c": "Sécurité", "r": "caution", "d": "Configure l'audit du noyau Linux"}, {"n": "getfacl", "c": "Sécurité", "r": "safe", "d": "Affiche les listes de contrôle d'accès"}, {"n": "setfacl", "c": "Sécurité", "r": "caution", "d": "Modifie les listes de contrôle d'accès"}, {"n": "apparmor_status", "c": "Sécurité", "r": "safe", "d": "Affiche l'état des profils AppArmor"}, {"n": "setenforce", "c": "Sécurité", "r": "danger", "d": "Active/désactive SELinux"}, {"n": "fail2ban-client", "c": "Sécurité", "r": "caution", "d": "Bloque les IP après tentatives suspectes"}, {"n": "git", "c": "Développement", "r": "safe", "d": "Système de gestion de versions"}, {"n": "git clone", "c": "Développement", "r": "safe", "d": "Clone un dépôt distant"}, {"n": "git commit", "c": "Développement", "r": "safe", "d": "Enregistre des modifications"}, {"n": "git push", "c": "Développement", "r": "caution", "d": "Envoie des modifications vers un dépôt distant"}, {"n": "git reset --hard", "c": "Développement", "r": "danger", "d": "Annule des modifications de façon irréversible"}, {"n": "git rebase", "c": "Développement", "r": "caution", "d": "Réécrit l'historique des commits"}, {"n": "gh (GitHub CLI)", "c": "Développement", "r": "safe", "d": "Interagit avec GitHub en ligne de commande"}, {"n": "make", "c": "Développement", "r": "caution", "d": "Automatise la compilation de projets"}, {"n": "cmake", "c": "Développement", "r": "safe", "d": "Génère des fichiers de build multiplateformes"}, {"n": "gcc", "c": "Développement", "r": "safe", "d": "Compilateur C/C++"}, {"n": "g++", "c": "Développement", "r": "safe", "d": "Compilateur C++"}, {"n": "clang", "c": "Développement", "r": "safe", "d": "Compilateur C/C++/Objective-C"}, {"n": "python3", "c": "Développement", "r": "safe", "d": "Interpréteur Python"}, {"n": "pip", "c": "Développement", "r": "caution", "d": "Installe des paquets Python"}, {"n": "node", "c": "Développement", "r": "safe", "d": "Exécute du JavaScript côté serveur"}, {"n": "npm", "c": "Développement", "r": "caution", "d": "Gestionnaire de paquets Node.js"}, {"n": "npx", "c": "Développement", "r": "caution", "d": "Exécute un paquet npm sans l'installer"}, {"n": "yarn", "c": "Développement", "r": "caution", "d": "Gestionnaire de paquets alternatif à npm"}, {"n": "cargo", "c": "Développement", "r": "caution", "d": "Gestionnaire de paquets/build Rust"}, {"n": "go build", "c": "Développement", "r": "safe", "d": "Compile un programme Go"}, {"n": "javac", "c": "Développement", "r": "safe", "d": "Compilateur Java"}, {"n": "java", "c": "Développement", "r": "safe", "d": "Exécute des programmes Java"}, {"n": "docker", "c": "Développement", "r": "caution", "d": "Gère des conteneurs applicatifs"}, {"n": "docker-compose", "c": "Développement", "r": "caution", "d": "Orchestre plusieurs conteneurs Docker"}, {"n": "podman", "c": "Développement", "r": "caution", "d": "Alternative à Docker sans démon root"}, {"n": "kubectl", "c": "Développement", "r": "caution", "d": "Pilote un cluster Kubernetes"}, {"n": "vagrant", "c": "Développement", "r": "safe", "d": "Gère des machines virtuelles de développement"}, {"n": "ansible", "c": "Développement", "r": "caution", "d": "Automatise la configuration de serveurs"}, {"n": "terraform", "c": "Développement", "r": "caution", "d": "Provisionne des infrastructures cloud"}, {"n": "gdb", "c": "Développement", "r": "caution", "d": "Débogueur de programmes compilés"}, {"n": "valgrind", "c": "Développement", "r": "safe", "d": "Détecte les fuites mémoire d'un programme"}, {"n": "ldd", "c": "Développement", "r": "safe", "d": "Liste les bibliothèques liées à un exécutable"}, {"n": "strings", "c": "Développement", "r": "safe", "d": "Extrait le texte lisible d'un binaire"}, {"n": "objdump", "c": "Développement", "r": "caution", "d": "Désassemble un fichier binaire"}, {"n": "nm", "c": "Développement", "r": "safe", "d": "Liste les symboles d'un fichier objet"}, {"n": "readelf", "c": "Développement", "r": "safe", "d": "Affiche les infos d'un fichier ELF"}, {"n": "file2pcap", "c": "Développement", "r": "safe", "d": "Convertit des données en paquets réseau"}, {"n": "tmux", "c": "Développement", "r": "safe", "d": "Multiplexeur de terminal"}, {"n": "screen", "c": "Développement", "r": "safe", "d": "Multiplexeur de terminal historique"}, {"n": "direnv", "c": "Développement", "r": "safe", "d": "Charge des variables d'environnement par dossier"}, {"n": "nvm", "c": "Développement", "r": "safe", "d": "Gère plusieurs versions de Node.js"}, {"n": "pyenv", "c": "Développement", "r": "safe", "d": "Gère plusieurs versions de Python"}, {"n": "ffmpeg", "c": "Multimédia", "r": "safe", "d": "Convertit et traite l'audio/vidéo"}, {"n": "ffprobe", "c": "Multimédia", "r": "safe", "d": "Analyse les métadonnées d'un fichier média"}, {"n": "imagemagick (convert)", "c": "Multimédia", "r": "safe", "d": "Convertit et édite des images"}, {"n": "sox", "c": "Multimédia", "r": "safe", "d": "Traite et convertit des fichiers audio"}, {"n": "youtube-dl", "c": "Multimédia", "r": "caution", "d": "Télécharge des vidéos en ligne"}, {"n": "yt-dlp", "c": "Multimédia", "r": "caution", "d": "Fork moderne et maintenu de youtube-dl"}, {"n": "mpv", "c": "Multimédia", "r": "safe", "d": "Lecteur multimédia en ligne de commande"}, {"n": "vlc (cli)", "c": "Multimédia", "r": "safe", "d": "Lecteur multimédia polyvalent"}, {"n": "exiftool", "c": "Multimédia", "r": "safe", "d": "Lit et modifie les métadonnées de fichiers"}, {"n": "qrencode", "c": "Multimédia", "r": "safe", "d": "Génère des QR codes"}, {"n": "zbarimg", "c": "Multimédia", "r": "safe", "d": "Décode des QR codes et codes-barres"}, {"n": "cowsay", "c": "Fun & Divers", "r": "safe", "d": "Affiche du texte dans une bulle de vache ASCII"}, {"n": "sl", "c": "Fun & Divers", "r": "safe", "d": "Fait défiler un train ASCII (easter egg)"}, {"n": "fortune", "c": "Fun & Divers", "r": "safe", "d": "Affiche une citation aléatoire"}, {"n": "figlet", "c": "Fun & Divers", "r": "safe", "d": "Affiche du texte en grandes lettres ASCII"}, {"n": "toilet", "c": "Fun & Divers", "r": "safe", "d": "Variante colorée de figlet"}, {"n": "lolcat", "c": "Fun & Divers", "r": "safe", "d": "Colorise la sortie terminal en arc-en-ciel"}, {"n": "cmatrix", "c": "Fun & Divers", "r": "safe", "d": "Effet visuel façon Matrix dans le terminal"}, {"n": "neofetch", "c": "Fun & Divers", "r": "safe", "d": "Affiche les infos système avec style"}, {"n": "htop", "c": "Fun & Divers", "r": "safe", "d": "Moniteur système coloré et interactif"}, {"n": "asciiquarium", "c": "Fun & Divers", "r": "safe", "d": "Aquarium animé en ASCII art"}, {"n": "nyancat", "c": "Fun & Divers", "r": "safe", "d": "Anime le mème Nyan Cat dans le terminal"}, {"n": "hollywood", "c": "Fun & Divers", "r": "safe", "d": "Simule un écran de piratage façon film"}, {"n": "yes", "c": "Fun & Divers", "r": "safe", "d": "Répète une chaîne indéfiniment"}, {"n": "bc", "c": "Fun & Divers", "r": "safe", "d": "Calculatrice en ligne de commande"}, {"n": "cal", "c": "Fun & Divers", "r": "safe", "d": "Affiche un calendrier"}, {"n": "espeak", "c": "Fun & Divers", "r": "safe", "d": "Synthèse vocale en ligne de commande"}];
+
+const state = {
+  query: "",
+  category: null,
+  risks: new Set(),
+  focusIndex: -1
+};
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+const catFilters = document.getElementById('cat-filters');
+const countShown = document.getElementById('count-shown');
+const countTotal = document.getElementById('count-total');
+
+// Build category chips
+const cats = [...new Set(TOOLS.map(t => t.c))].sort();
+cats.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'chip';
+  btn.dataset.cat = cat;
+  btn.textContent = cat;
+  btn.addEventListener('click', () => {
+    state.category = (state.category === cat) ? null : cat;
+    document.querySelectorAll('#cat-filters .chip').forEach(c => c.classList.remove('active'));
+    if(state.category) btn.classList.add('active');
+    render();
+  });
+  catFilters.insertBefore(btn, document.querySelector('.filter-spacer'));
+});
+
+// Risk chips
+document.querySelectorAll('#risk-filters .chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const r = btn.dataset.risk;
+    if(state.risks.has(r)){ state.risks.delete(r); btn.classList.remove('active'); }
+    else { state.risks.add(r); btn.classList.add('active'); }
+    render();
+  });
+});
+
+function filteredTools(){
+  const q = state.query.trim().toLowerCase();
+  return TOOLS.filter(t => {
+    if(state.category && t.c !== state.category) return false;
+    if(state.risks.size > 0 && !state.risks.has(t.r)) return false;
+    if(q){
+      const hay = (t.n + ' ' + t.d + ' ' + t.c).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function render(){
+  const list = filteredTools();
+  grid.innerHTML = '';
+  countShown.textContent = list.length;
+  countTotal.textContent = TOOLS.length;
+
+  if(list.length === 0){
+    grid.innerHTML = '<div class="no-results"><div class="big">[ AUCUN RÉSULTAT ]</div>aucun outil ne correspond à ces critères. essaie un autre terme.</div>';
+    state.focusIndex = -1;
+    return;
+  }
+
+  list.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.dataset.index = i;
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="tool-name">${escapeHtml(t.n)}</span>
+        <span class="risk-tag ${t.r}">${t.r}</span>
+      </div>
+      <div class="tool-desc">${escapeHtml(t.d)}</div>
+      <div class="tool-cat">${escapeHtml(t.c)}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+let debounceTimer;
+searchInput.addEventListener('input', (e) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    state.query = e.target.value;
+    render();
+  }, 80);
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+    return;
+  }
+  if(e.key === 'Escape'){
+    if(document.activeElement === searchInput){
+      searchInput.value = '';
+      state.query = '';
+      searchInput.blur();
+    }
+    state.category = null;
+    state.risks.clear();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    render();
+    return;
+  }
+  const cards = [...grid.querySelectorAll('.card')];
+  if(cards.length === 0) return;
+
+  if(e.key === 'ArrowDown'){
+    e.preventDefault();
+    state.focusIndex = Math.min(state.focusIndex + 1, cards.length - 1);
+    focusCard(cards);
+  } else if(e.key === 'ArrowUp'){
+    e.preventDefault();
+    state.focusIndex = Math.max(state.focusIndex - 1, 0);
+    focusCard(cards);
+  }
+});
+
+function focusCard(cards){
+  cards.forEach(c => c.classList.remove('focused'));
+  if(state.focusIndex >= 0 && cards[state.focusIndex]){
+    cards[state.focusIndex].classList.add('focused');
+    cards[state.focusIndex].scrollIntoView({block:'nearest', behavior:'smooth'});
+    cards[state.focusIndex].focus();
+  }
+}
+
+// Stats
+function updateStats(){
+  document.getElementById('stat-total').textContent = TOOLS.length;
+  document.getElementById('stat-cats').textContent = cats.length;
+  document.getElementById('stat-caution').textContent = TOOLS.filter(t => t.r === 'caution').length;
+  document.getElementById('stat-danger').textContent = TOOLS.filter(t => t.r === 'danger').length;
+}
+
+// Clock
+function tickClock(){
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${hh}:${mm}:${ss}`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+updateStats();
+render();
+</script>
+</body>
+</html>
