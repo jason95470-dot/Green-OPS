@@ -20,7 +20,7 @@ Cette méthode te permet de taper `greenops` depuis **Win+R**, CMD, ou PowerShel
 ### Étape 1 — Cloner ou télécharger le projet
 
 ```bat
-git clone https://github.com/TON-PSEUDO/green-ops.git
+git clone https://github.com/jason95470/green-ops.git
 cd green-ops
 ```
 
